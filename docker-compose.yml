@@ -1,0 +1,44 @@
+
+services:
+  orbit-predictor:
+    build:
+      context: ./orbit-predictor
+    ports:
+      - "8001:8001"
+    restart: always
+
+  ml-tabular:
+    build:
+      context: ./ml-tabular
+    ports:
+      - "8002:8002"
+    restart: always
+
+  ml-image:
+    build:
+      context: ./ml-image
+    ports:
+      - "8003:8003"
+    restart: always
+
+  astro-data:
+    build:
+      context: ./astro-data
+    ports:
+      - "8004:8004"
+    restart: always
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: astrolab_user
+      POSTGRES_PASSWORD: astrolab_pass
+      POSTGRES_DB: astrolab_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+volumes:
+  postgres_data:
