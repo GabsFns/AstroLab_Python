@@ -5,7 +5,7 @@ import os
 from astroquery.jplhorizons import Horizons
 from time import sleep
 import pandas as pd
-from tqdm import tqdm  # barra de progresso
+from tqdm import tqdm 
 
 def baixar_e_extrair_mpc(url, pasta_destino="mpc_data"):
     response = requests.get(url, stream=True)
@@ -48,12 +48,12 @@ def baixar_ephemerides_jpl(ids, pasta_destino="horizons_data", start_date="2025-
 if __name__ == "__main__":
     url_mpc = "https://minorplanetcenter.net/iau/MPCORB/MPCORB.DAT"
 
-    # Passo 1: Baixar e extrair MPC com barra de progresso
+  
     baixar_e_extrair_mpc(url_mpc)
 
-    # Passo 2: Ler IDs do arquivo principal
+ 
     arquivo_mpcorb = "mpc_data/MPCORB.DAT"
-    ids_objetos = extrair_ids_arquivo_mpc(arquivo_mpcorb, max_ids=20)  # limite para teste
+    ids_objetos = extrair_ids_arquivo_mpc(arquivo_mpcorb, max_ids=20)  
 
-    # Passo 3: Consultar JPL Horizons e salvar dados com barra de progresso
+  
     baixar_ephemerides_jpl(ids_objetos)

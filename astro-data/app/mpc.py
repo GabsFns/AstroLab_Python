@@ -14,3 +14,9 @@ def fetch_and_store():
         return {"msg": "Arquivo MPCORB baixado e extraído com sucesso"}
     else:
         return {"erro": f"Erro ao baixar arquivo: {response.status_code}"}
+    
+if __name__ == "__main__":
+    print(fetch_and_store())
+    
+    
+    

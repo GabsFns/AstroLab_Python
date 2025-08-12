@@ -1,8 +1,11 @@
 from astroquery.gaia import Gaia
+import pandas as pd
+from tqdm import tqdm
+import time
 
 def fetch_and_store():
     query = """
-        SELECT TOP 10000
+        SELECT TOP 80000
             source_id,
             ra, dec,
             parallax, parallax_error,
@@ -22,21 +25,29 @@ def fetch_and_store():
         AND visibility_periods_used > 8
     """
 
-    # Executa a query no banco da Gaia
+   
     job = Gaia.launch_job_async(query)
-    results = job.get_results()
 
-    # Retorna os dados em formato de dicionário (pode salvar no banco ou retornar via API)
-    # return results.to_pandas().to_dict(orient="records")
+    # Barra de progresso personalizada
+    with tqdm(total=100, desc="🔭 Consultando Gaia", bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}%", colour="cyan") as pbar:
+        while job.get_phase() not in ["COMPLETED", "ERROR"]:
+        
+            if pbar.n < 90:
+                pbar.update(1)
+            time.sleep(0.3)
+
+       
+        pbar.n = 100
+        pbar.refresh()
+
+    
+    results = job.get_results()
     return results.to_pandas()
 
 if __name__ == "__main__":
     df = fetch_and_store()
     
-    # Nome do seu arquivo CSV (pode ser vazio, será sobrescrito)
     caminho_arquivo = "../data/gaia_data.csv"
-    
-    # Salva o DataFrame no CSV, sem índice e com vírgula como separador
     df.to_csv(caminho_arquivo, index=False)
     
-    print(f"Arquivo '{caminho_arquivo}' salvo com sucesso!")
+    print(f"\n Arquivo '{caminho_arquivo}' salvo com sucesso!")

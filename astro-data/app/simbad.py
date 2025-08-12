@@ -1,42 +1,49 @@
 from astroquery.simbad import Simbad
+import pandas as pd
 
-def fetch_and_store():
-    objetos = [
-        "Vega", "Sirius", "Betelgeuse", "Antares", "Polaris", "Aldebaran", "Rigel", "Capella",
-        "Deneb", "Altair", "Procyon", "Spica", "Arcturus", "Castor", "Pollux", "Fomalhaut",
-        "Regulus", "Bellatrix", "Alnitak", "Alnilam", "Mintaka", "M33", "M42", "M45", "M31",
-        "M81", "M82", "M87", "NGC 2244", "NGC 253", "NGC 891", "NGC 4565", "NGC 4631", "NGC 5055",
-        "NGC 5194", "NGC 6946", "NGC 7331", "NGC 7479", "NGC 7793", "Denebola", "Alphard",
-        "Zubenelgenubi", "Zubeneschamali", "Shaula", "Lesath", "Kaus Australis", "Kaus Media",
-        "Kaus Borealis", "Alnasl"
-    ]
+objetos = [
+    "Vega"  # Vega
+]
 
-    custom_simbad = Simbad()
-    custom_simbad.TIMEOUT = 120
-    custom_simbad.ROW_LIMIT = 0  # Sem limite de resultados
-    custom_simbad.remove_votable_fields()
-    custom_simbad.add_votable_fields(
-        'otype', 'distance_result', 'ra', 'dec',
-        'flux(V)', 'flux(B)', 'pmra', 'pmdec'
-    )
-    
-    result = custom_simbad.query_objects(objetos)
+custom_simbad = Simbad()
+custom_simbad.TIMEOUT = 60
+custom_simbad.ROW_LIMIT = 0
+custom_simbad.reset_votable_fields()
+custom_simbad.add_votable_fields('otype', 'mesdistance', 'ra', 'dec', 'V', 'B', 'pmra', 'pmdec')
 
-    if result is None:
-        return {"msg": "Nenhum dado SIMBAD retornado"}
+registros = []
+falhas = []
 
-    registros = []
-    for row in result:
+for obj in objetos:
+    try:
+        result = custom_simbad.query_object(obj)
+        if result is None or len(result) == 0:
+            falhas.append(obj)
+            continue
+        
+        row = result[0]
         registros.append({
-            "nome": row["MAIN_ID"].decode() if isinstance(row["MAIN_ID"], bytes) else row["MAIN_ID"],
-            "tipo": row["OTYPE"],
-            "ra": str(row["RA"]),
-            "dec": str(row["DEC"]),
-            "distancia_pc": row.get("Distance_distance_result", None),
-            "mag_v": row.get("FLUX_V", None),
-            "mag_b": row.get("FLUX_B", None),
-            "pm_ra": row.get("PMRA", None),
-            "pm_dec": row.get("PMDEC", None),
+            "Nome": obj,
+            "Tipo": row["OTYPE"],
+            "RA": str(row["RA"]),
+            "DEC": str(row["DEC"]),
+            "Distância_pc": row.get("MESDISTANCE"),
+            "Mag_V": row.get("V"),
+            "Mag_B": row.get("B"),
+            "PM_RA": row.get("PMRA"),
+            "PM_DEC": row.get("PMDEC"),
         })
+    except Exception as e:
+        print(f"Erro consultando '{obj}': {e}")
+        falhas.append(obj)
 
-    return registros
+if registros:
+    df = pd.DataFrame(registros)
+    print("\n🔭 Objetos encontrados no SIMBAD:\n")
+    print(df.to_string(index=False))
+else:
+    print("⚠ Nenhum objeto retornou dados no SIMBAD.")
+
+if falhas:
+    print("\n❌ Objetos que não foram encontrados no SIMBAD:")
+    print(", ".join(falhas))
